@@ -22,21 +22,28 @@ namespace CanvasBot
 
         public async Task<List<Assignment>> GetAssignments(long courseId)
         {
+            List<Assignment> allAssignments = new List<Assignment>();
             var assresponse = await client.GetAsync("https://canvas.instructure.com/api/v1/courses/" + courseId + "/assignments?per_page=1000");
-            assresponse.EnsureSuccessStatusCode();
-            var assresult = await assresponse.Content.ReadAsStringAsync();
-            List<Assignment> ass = JsonConvert.DeserializeObject<List<Assignment>>(assresult);
+            if (assresponse.IsSuccessStatusCode)
+            {
+                var assresult = await assresponse.Content.ReadAsStringAsync();
+                List<Assignment> ass = JsonConvert.DeserializeObject<List<Assignment>>(assresult);
+                allAssignments.AddRange(ass);
+            }
+            
             var quizresponse = await client.GetAsync("https://canvas.instructure.com/api/v1/courses/" + courseId + "/quizzes?per_page=1000");
-            quizresponse.EnsureSuccessStatusCode();
-            var quizresult = await quizresponse.Content.ReadAsStringAsync();
-            List<Assignment> quiz = JsonConvert.DeserializeObject<List<Assignment>>(quizresult);
-            ass.AddRange(quiz);
-            return ass;
+            if (quizresponse.IsSuccessStatusCode)
+            {
+                var quizresult = await quizresponse.Content.ReadAsStringAsync();
+                List<Assignment> quiz = JsonConvert.DeserializeObject<List<Assignment>>(quizresult);
+                allAssignments.AddRange(quiz);
+            }
+            return allAssignments;
         }
 
         public async Task<List<Course>> GetCourses(long userId)
         {
-            var response = await client.GetAsync("https://canvas.instructure.com/api/v1/courses");
+            var response = await client.GetAsync("https://canvas.instructure.com/api/v1/courses?per_page=1000");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsStringAsync();
             //Debug.WriteLine(result);

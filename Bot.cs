@@ -16,6 +16,7 @@ namespace CanvasBot
         {
             if (!File.Exists("config.json"))
             {
+
                 var file = File.Create("config.json");
                 file.Close();
                 initConfig();
@@ -35,6 +36,7 @@ namespace CanvasBot
             discordKey = jsonData["discordKey"].ToString();
 
             Console.WriteLine("Starting CanvasBot...");
+            //Debug.WriteLine(Assignments());
             MainAsync().GetAwaiter().GetResult();
         }
 
@@ -42,7 +44,7 @@ namespace CanvasBot
         {
             Console.WriteLine("Looks like it's your first time running CanvasBot.\nLet's get you set up.");
             Console.WriteLine("First, we'll need your Canvas API key. Please enter it now:");
-            string canvas = Console.ReadLine();
+            canvasKey = Console.ReadLine();
             Console.WriteLine("Verifying...");
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Authorization
@@ -54,7 +56,10 @@ namespace CanvasBot
                 if (response.Result.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     Console.WriteLine("Invalid token. Please try again:");
-                    canvas = Console.ReadLine();
+                    canvasKey = Console.ReadLine();
+                    client.DefaultRequestHeaders.Authorization
+                        = new AuthenticationHeaderValue("Bearer", canvasKey);
+                    Console.WriteLine("Verifying...");
                 }
             }
             while (response.Result.StatusCode == HttpStatusCode.Unauthorized);
@@ -62,7 +67,7 @@ namespace CanvasBot
             string discord = Console.ReadLine();
             var config = new Dictionary<string, string> {
                     {"discordKey", discord},
-                    {"canvasKey", canvas}
+                    {"canvasKey", canvasKey}
                 };
             var output = JsonConvert.SerializeObject(config);
             File.WriteAllText("config.json", output);
