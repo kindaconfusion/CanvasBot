@@ -138,9 +138,9 @@ namespace CanvasBot
                     else {
                         dueDate = DateTime.Parse(a.Lock_At);
                     }
-                    var timeDiff = dueDate.Subtract(DateTime.Now);
+                    a.DueIn = dueDate.Subtract(DateTime.Now);
                     //Debug.WriteLine(timeDiff);
-                    if (timeDiff.TotalMilliseconds > 0 && timeDiff.TotalHours < hours)
+                    if (a.DueIn.TotalMilliseconds > 0 && a.DueIn.TotalHours < hours)
                     {
                         assignsDue.Add(a);
                     }
@@ -150,12 +150,38 @@ namespace CanvasBot
             
             
             string asses = "";
+            List<Assignment> sortedAssignments = assignsDue.OrderBy(o => o.DueIn.TotalMilliseconds).ToList();
             List<string> dedupe = new List<string>();
-            foreach (Assignment a in assignsDue)
+            foreach (Assignment a in sortedAssignments)
             {
                 if (dedupe.Contains(a.Name))
                     continue;
-                asses += a.Name + "\n";
+                string time = "";
+                // time formatting sucks
+                if (a.DueIn.Days > 0)
+                {
+                    if (a.DueIn.Days > 1)
+                        time += (int)a.DueIn.Days + " days, ";
+                    else
+                        time += (int)a.DueIn.Days + " day, ";
+                }
+                if (a.DueIn.Hours > 0)
+                {
+                    if (a.DueIn.Hours > 1)
+                        time += (int)a.DueIn.Hours + " hours, ";
+                    else
+                        time += (int)a.DueIn.Hours + " hour, ";
+                }
+                if (a.DueIn.Minutes > 0)
+                {
+                    if (a.DueIn.Minutes > 1)
+                        time += (int)a.DueIn.Minutes + " minutes ";
+                    else
+                        time += (int)a.DueIn.Minutes + " minute ";
+                }
+                if (a.DueIn.TotalSeconds < 60)
+                    time = " less than a minute!";
+                asses += a.Name + " - due in " + time + "\n";
                 dedupe.Add(a.Name);
             }
 
@@ -170,6 +196,7 @@ namespace CanvasBot
             foreach (Course c in result)
             {
                 list += c.Name + "\n";
+                
             }
             return list;
         }

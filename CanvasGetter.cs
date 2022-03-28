@@ -119,6 +119,8 @@ namespace CanvasBot
         public string Due_At { get; set; }
         public string Lock_At { get; set; }
 
+        public TimeSpan DueIn { get; set; }
+
 
     }
 
