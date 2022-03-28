@@ -7,7 +7,6 @@ Check your upcoming Canvas assignments from Discord
 #### !assignments
 List all assignments due within a given timeframe (currently hardcoded to 48 hours)
 #### !courses
-List "all" courses you are enrolled in
-(not actually all, see issue #1)
+List all courses you are enrolled in
 
 
