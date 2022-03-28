@@ -38,6 +38,8 @@ namespace CanvasBot
                 List<Assignment> quiz = JsonConvert.DeserializeObject<List<Assignment>>(quizresult);
                 allAssignments.AddRange(quiz);
             }
+
+            //List<Assignment> sortedAssignments = allAssignments.OrderBy(o => o.Lock_At).ToList();
             return allAssignments;
         }
 

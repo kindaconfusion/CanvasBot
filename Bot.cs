@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using DSharpPlus;
@@ -36,7 +37,7 @@ namespace CanvasBot
             discordKey = jsonData["discordKey"].ToString();
 
             Console.WriteLine("Starting CanvasBot...");
-            //Debug.WriteLine(Assignments());
+            //Debug.WriteLine(Assignments(48));
             MainAsync().GetAwaiter().GetResult();
         }
 
@@ -86,7 +87,24 @@ namespace CanvasBot
                 if (e.Message.Content.ToLower().StartsWith("ping"))
                     await e.Message.RespondAsync("pong!");
                 if (e.Message.Content.ToLower().StartsWith("!assignments"))
-                    await e.Message.RespondAsync("Assignments due soon: \n" + Assignments());
+                {
+                    int hours;
+                    if (e.Message.Content.Length > 12)
+                    {
+                        string[] args = e.Message.Content.ToLower().Substring(13).Split(" ");
+                        hours = Int32.Parse(args[0]);
+                    }
+                    else
+                    {
+                        hours = 48;
+                    }
+                   
+                    
+                    //Debug.WriteLine(args[0]);
+                    //Debug.WriteLine(hours);
+                    Assignments(hours);
+                    await e.Message.RespondAsync("Assignments due within " + hours + " hours: \n" + Assignments(hours));
+                }
                 if (e.Message.Content.ToLower().StartsWith("!courses"))
                     await e.Message.RespondAsync("Courses currently enrolled: \n" + Courses());
             };
@@ -95,7 +113,7 @@ namespace CanvasBot
             await Task.Delay(-1);
         }
 
-        static string Assignments()
+        static string Assignments(int hours)
         {
             string json = System.IO.File.ReadAllText("courses.json");
             User user = JsonConvert.DeserializeObject<User>(json);
@@ -122,7 +140,7 @@ namespace CanvasBot
                     }
                     var timeDiff = dueDate.Subtract(DateTime.Now);
                     //Debug.WriteLine(timeDiff);
-                    if (timeDiff.TotalMilliseconds > 0 && timeDiff.TotalHours < 48)
+                    if (timeDiff.TotalMilliseconds > 0 && timeDiff.TotalHours < hours)
                     {
                         assignsDue.Add(a);
                     }
