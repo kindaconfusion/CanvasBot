@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using DSharpPlus;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -36,13 +35,6 @@ namespace CanvasBot
             discordKey = jsonData["discordKey"].ToString();
 
             Console.WriteLine("Starting CanvasBot...");
-            //var name = result.Name;
-            //Debug.WriteLine(name);
-            //var duedate = result.Lock_At;
-            //Debug.WriteLine(duedate);
-            //var datetime = DateTime.Parse(duedate);
-            //Debug.WriteLine(datetime);
-            //Debug.WriteLine(Assignments());
             MainAsync().GetAwaiter().GetResult();
         }
 
