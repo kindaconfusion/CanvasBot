@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+using CanvasBot.Classes;
 using Newtonsoft.Json;
 
 namespace CanvasBot
 { 
     public class CanvasGetter
     {
-        private string Token;
         private static HttpClient client;
+        private static List<Course> courses;
 
         public CanvasGetter(string token)
         {
@@ -20,22 +16,22 @@ namespace CanvasBot
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        public async Task<List<Assignment>> GetAssignments(long courseId)
+        public async Task<List<CanvasAssignment>> GetAssignments(long courseId)
         {
-            List<Assignment> allAssignments = new List<Assignment>();
-            var assresponse = await client.GetAsync("https://canvas.instructure.com/api/v1/courses/" + courseId + "/assignments?per_page=1000");
+            List<CanvasAssignment> allAssignments = new List<CanvasAssignment>();
+            var assresponse = await client.GetAsync($"https://canvas.instructure.com/api/v1/courses/{courseId}/assignments?per_page=1000");
             if (assresponse.IsSuccessStatusCode)
             {
                 var assresult = await assresponse.Content.ReadAsStringAsync();
-                List<Assignment> ass = JsonConvert.DeserializeObject<List<Assignment>>(assresult);
+                List<CanvasAssignment> ass = JsonConvert.DeserializeObject<List<CanvasAssignment>>(assresult);
                 allAssignments.AddRange(ass);
             }
             
-            var quizresponse = await client.GetAsync("https://canvas.instructure.com/api/v1/courses/" + courseId + "/quizzes?per_page=1000");
+            var quizresponse = await client.GetAsync($"https://canvas.instructure.com/api/v1/courses/{courseId}/quizzes?per_page=1000");
             if (quizresponse.IsSuccessStatusCode)
             {
                 var quizresult = await quizresponse.Content.ReadAsStringAsync();
-                List<Assignment> quiz = JsonConvert.DeserializeObject<List<Assignment>>(quizresult);
+                List<CanvasAssignment> quiz = JsonConvert.DeserializeObject<List<CanvasAssignment>>(quizresult);
                 allAssignments.AddRange(quiz);
             }
 
@@ -104,42 +100,5 @@ namespace CanvasBot
 
     }
 
-    public class Assignment
-    {
-        public string Name { get; set; }
-
-        [JsonProperty("title")] 
-        private string Title
-        {
-            set { Name = value; }
-        }
-        public string Id { get; set; }
-        public string CourseId { get; set; }
-        [JsonProperty("due_at")]
-        public string Due_At { get; set; }
-        public string Lock_At { get; set; }
-
-        public TimeSpan DueIn { get; set; }
-
-
-    }
-
-    public class Course
-    {
-        [JsonProperty("id")]
-        public long Id { get; set; }
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
-        [JsonProperty(PropertyName = "start_at")]
-        public string Start_At { get; set; }
-    }
-
-    public class User
-    {
-        public long DiscordId { get; set; }
-
-        public long CanvasId { get; set; }
-        public List<Course> Courses { get; set; }
-    }
 
 }
