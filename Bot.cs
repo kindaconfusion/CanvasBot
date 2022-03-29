@@ -21,7 +21,7 @@ namespace CanvasBot
                 file.Close();
                 initConfig();
             }
-            string json = System.IO.File.ReadAllText("config.json");
+            string json = File.ReadAllText("config.json");
             JObject jsonData;
             try
             {
@@ -114,13 +114,13 @@ namespace CanvasBot
 
         static string Assignments(int hours)
         {
-            string json = File.ReadAllText("courses.json");
-            User user = JsonConvert.DeserializeObject<User>(json);
-            var canvasGetter = new CanvasGetter(canvasKey);
+            var canvasHandler = new CanvasHandler(canvasKey);
+            User user = canvasHandler.GetUserInfo(1).Result;
             List<CanvasAssignment> assignsDue = new List<CanvasAssignment>();
             foreach (Course c in user.Courses)
             {
-                var ass = canvasGetter.GetAssignments(c.Id).Result;
+                // Get Assignments for course.
+                var ass = canvasHandler.GetAssignments(c.Id).Result;
 
                 foreach (CanvasAssignment a in ass)
                 {
@@ -155,31 +155,32 @@ namespace CanvasBot
             {
                 if (dedupe.Contains(a.Name))
                     continue;
+                asses.Append($"{a.Name} - due in ");
                 // time formatting sucks
                 if (a.DueIn.Days > 0)
                 {
                     if (a.DueIn.Days > 1)
-                        time.Append($"{a.DueIn.Days} days, ");
+                        asses.Append($"{a.DueIn.Days} days, ");
                     else
-                        time.Append($"{a.DueIn.Days} day, ");
+                        asses.Append($"{a.DueIn.Days} day, ");
                 }
                 if (a.DueIn.Hours > 0)
                 {
                     if (a.DueIn.Hours > 1)
-                        time.Append($"{a.DueIn.Hours} Hours, ");
+                        asses.Append($"{a.DueIn.Hours} Hours, ");
                     else
-                        time.Append($"{a.DueIn.Hours} Hour, ");
+                        asses.Append($"{a.DueIn.Hours} Hour, ");
                 }
                 if (a.DueIn.Minutes > 0)
                 {
                     if (a.DueIn.Minutes > 1)
-                        time.Append($"{a.DueIn.Minutes} Minutes, ");
+                        asses.Append($"{a.DueIn.Minutes} Minutes, ");
                     else
-                        time.Append($"{a.DueIn.Minutes} Minute, ");
+                        asses.Append($"{a.DueIn.Minutes} Minute, ");
                 }
                 if (a.DueIn.TotalSeconds < 60)
-                    time.Append(" less than a minute!");
-                asses.Append($"{a.Name} - due in {a.DueIn.ToString("dd")}\n");
+                    asses.Append(" less than a minute!");
+                asses.Append("\n");
                 dedupe.Add(a.Name);
             }
 
@@ -188,10 +189,10 @@ namespace CanvasBot
 
         static string Courses()
         {
-            var canvasGetter = new CanvasGetter(canvasKey);
-            var result = canvasGetter.GetCourses(1).Result;
+            var canvasGetter = new CanvasHandler(canvasKey);
+            var result = canvasGetter.GetUserInfo(1).Result;
             string list = "";
-            foreach (Course c in result)
+            foreach (Course c in result.Courses)
             {
                 list += c.Name + "\n";
                 

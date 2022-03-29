@@ -5,12 +5,12 @@ using Newtonsoft.Json;
 
 namespace CanvasBot
 { 
-    public class CanvasGetter
+    public class CanvasHandler
     {
         private static HttpClient client;
-        private static List<Course> courses;
+        private static List<User> users;
 
-        public CanvasGetter(string token)
+        public CanvasHandler(string token)
         {
             client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -39,8 +39,22 @@ namespace CanvasBot
             return allAssignments;
         }
 
-        public async Task<List<Course>> GetCourses(long userId)
+        public async Task<User> GetUserInfo(long userId)
         {
+            var check = users.Find(o => o.CanvasId == userId);
+            if (check != null)
+            {
+                return check;
+            }
+
+            string json = File.ReadAllText("courses.json");
+            var load = JsonConvert.DeserializeObject<User>(json);
+            if(load.CanvasId == userId)
+            {
+                return load;
+            }
+
+
             var response = await client.GetAsync("https://canvas.instructure.com/api/v1/courses?per_page=1000");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsStringAsync();
@@ -94,8 +108,10 @@ namespace CanvasBot
             user.CanvasId = 1;
             user.Courses = courses;
             string output = JsonConvert.SerializeObject(user);
-            await File.WriteAllTextAsync("courses.json", output);
-            return courses;
+            File.WriteAllTextAsync("courses.json", output);
+            users.Add(user);
+
+            return user;
         }
 
     }
