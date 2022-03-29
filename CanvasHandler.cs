@@ -41,11 +41,13 @@ namespace CanvasBot
 
         public async Task<User> GetUserInfo(long userId)
         {
+            /* this doesn't work while we are only tracking one user
             var check = users.Find(o => o.CanvasId == userId);
             if (check != null)
             {
                 return check;
             }
+            */
 
             try
             {
