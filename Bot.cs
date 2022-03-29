@@ -191,13 +191,14 @@ namespace CanvasBot
         {
             var canvasGetter = new CanvasHandler(canvasKey);
             var result = canvasGetter.GetUserInfo(1).Result;
-            string list = "";
+
+            StringBuilder list = new StringBuilder();
             foreach (Course c in result.Courses)
             {
-                list += c.Name + "\n";
+                list.Append($"{c.Name}\n");
                 
             }
-            return list;
+            return list.ToString();
         }
 
     }
