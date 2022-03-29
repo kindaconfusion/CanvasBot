@@ -1,8 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
+using CanvasBot.Classes;
 using DSharpPlus;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,13 +21,13 @@ namespace CanvasBot
                 file.Close();
                 initConfig();
             }
-            string json = System.IO.File.ReadAllText("config.json");
+            string json = File.ReadAllText("config.json");
             JObject jsonData;
             try
             {
                 jsonData = JObject.Parse(json);
             }
-            catch (JsonReaderException e)
+            catch (JsonReaderException)
             {
                 initConfig();
             }
@@ -103,10 +102,10 @@ namespace CanvasBot
                     //Debug.WriteLine(args[0]);
                     //Debug.WriteLine(hours);
                     Assignments(hours);
-                    await e.Message.RespondAsync("Assignments due within " + hours + " hours: \n" + Assignments(hours));
+                    await e.Message.RespondAsync($"Assignments due within {hours} hours: \n{Assignments(hours)}");
                 }
                 if (e.Message.Content.ToLower().StartsWith("!courses"))
-                    await e.Message.RespondAsync("Courses currently enrolled: \n" + Courses());
+                    await e.Message.RespondAsync($"Courses currently enrolled: \n{Courses()}");
             };
 
             await discord.ConnectAsync();
@@ -115,15 +114,15 @@ namespace CanvasBot
 
         static string Assignments(int hours)
         {
-            string json = System.IO.File.ReadAllText("courses.json");
-            User user = JsonConvert.DeserializeObject<User>(json);
-            var canvasGetter = new CanvasGetter(canvasKey);
-            List<Assignment> assignsDue = new List<Assignment>();
+            var canvasHandler = new CanvasHandler(canvasKey);
+            User user = canvasHandler.GetUserInfo(1).Result;
+            List<CanvasAssignment> assignsDue = new List<CanvasAssignment>();
             foreach (Course c in user.Courses)
             {
-                var ass = canvasGetter.GetAssignments(c.Id).Result;
+                // Get Assignments for course.
+                var ass = canvasHandler.GetAssignments(c.Id).Result;
 
-                foreach (Assignment a in ass)
+                foreach (CanvasAssignment a in ass)
                 {
                     DateTime dueDate;
                     if (a.Lock_At is null && a.Due_At is null)
@@ -149,51 +148,51 @@ namespace CanvasBot
             //var result = canvasGetter.GetAssignments(1).Result;
             
             
-            string asses = "";
-            List<Assignment> sortedAssignments = assignsDue.OrderBy(o => o.DueIn.TotalMilliseconds).ToList();
+            StringBuilder asses = new StringBuilder();
+            List<CanvasAssignment> sortedAssignments = assignsDue.OrderBy(o => o.DueIn.TotalMilliseconds).ToList();
             List<string> dedupe = new List<string>();
-            foreach (Assignment a in sortedAssignments)
+            foreach (CanvasAssignment a in sortedAssignments)
             {
                 if (dedupe.Contains(a.Name))
                     continue;
-                string time = "";
+                asses.Append($"{a.Name} - due in ");
                 // time formatting sucks
                 if (a.DueIn.Days > 0)
                 {
                     if (a.DueIn.Days > 1)
-                        time += (int)a.DueIn.Days + " days, ";
+                        asses.Append($"{a.DueIn.Days} days, ");
                     else
-                        time += (int)a.DueIn.Days + " day, ";
+                        asses.Append($"{a.DueIn.Days} day, ");
                 }
                 if (a.DueIn.Hours > 0)
                 {
                     if (a.DueIn.Hours > 1)
-                        time += (int)a.DueIn.Hours + " hours, ";
+                        asses.Append($"{a.DueIn.Hours} Hours, ");
                     else
-                        time += (int)a.DueIn.Hours + " hour, ";
+                        asses.Append($"{a.DueIn.Hours} Hour, ");
                 }
                 if (a.DueIn.Minutes > 0)
                 {
                     if (a.DueIn.Minutes > 1)
-                        time += (int)a.DueIn.Minutes + " minutes ";
+                        asses.Append($"{a.DueIn.Minutes} Minutes, ");
                     else
-                        time += (int)a.DueIn.Minutes + " minute ";
+                        asses.Append($"{a.DueIn.Minutes} Minute, ");
                 }
                 if (a.DueIn.TotalSeconds < 60)
-                    time = " less than a minute!";
-                asses += a.Name + " - due in " + time + "\n";
+                    asses.Append(" less than a minute!");
+                asses.Append("\n");
                 dedupe.Add(a.Name);
             }
 
-            return asses;
+            return asses.ToString();
         }
 
         static string Courses()
         {
-            var canvasGetter = new CanvasGetter(canvasKey);
-            var result = canvasGetter.GetCourses(1).Result;
+            var canvasGetter = new CanvasHandler(canvasKey);
+            var result = canvasGetter.GetUserInfo(1).Result;
             string list = "";
-            foreach (Course c in result)
+            foreach (Course c in result.Courses)
             {
                 list += c.Name + "\n";
                 
