@@ -47,11 +47,18 @@ namespace CanvasBot
                 return check;
             }
 
-            string json = File.ReadAllText("courses.json");
-            var load = JsonConvert.DeserializeObject<User>(json);
-            if(load.CanvasId == userId)
+            try
             {
-                return load;
+                string json = File.ReadAllText("courses.json");
+                var load = JsonConvert.DeserializeObject<User>(json);
+                if (load.CanvasId == userId)
+                {
+                    return load;
+                }
+            }
+            catch (Exception ex)
+            {
+
             }
 
 
