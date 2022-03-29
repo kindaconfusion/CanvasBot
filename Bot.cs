@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using CanvasBot.Classes;
 using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -80,39 +81,19 @@ namespace CanvasBot
                 Token = discordKey,
                 TokenType = TokenType.Bot
             });
-
-            discord.MessageCreated += async (s, e) =>
+            var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
             {
-                if (e.Message.Content.ToLower().StartsWith("ping"))
-                    await e.Message.RespondAsync("pong!");
-                if (e.Message.Content.ToLower().StartsWith("!assignments"))
-                {
-                    int hours;
-                    if (e.Message.Content.Length > 12)
-                    {
-                        string[] args = e.Message.Content.ToLower().Substring(13).Split(" ");
-                        hours = Int32.Parse(args[0]);
-                    }
-                    else
-                    {
-                        hours = 48;
-                    }
-                   
-                    
-                    //Debug.WriteLine(args[0]);
-                    //Debug.WriteLine(hours);
-                    Assignments(hours);
-                    await e.Message.RespondAsync($"Assignments due within {hours} hours: \n{Assignments(hours)}");
-                }
-                if (e.Message.Content.ToLower().StartsWith("!courses"))
-                    await e.Message.RespondAsync($"Courses currently enrolled: \n{Courses()}");
-            };
+                StringPrefixes = new[] { "c!" }
+            });
+
+            commands.RegisterCommands<CmdModule>();
+
 
             await discord.ConnectAsync();
             await Task.Delay(-1);
         }
 
-        static string Assignments(int hours)
+        public static string Assignments(int hours)
         {
             var canvasHandler = new CanvasHandler(canvasKey);
             User user = canvasHandler.GetUserInfo(1).Result;
@@ -187,7 +168,7 @@ namespace CanvasBot
             return asses.ToString();
         }
 
-        static string Courses()
+        public static string Courses()
         {
             var canvasGetter = new CanvasHandler(canvasKey);
             var result = canvasGetter.GetUserInfo(1).Result;
