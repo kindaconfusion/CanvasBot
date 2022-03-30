@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using CanvasBot.Classes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CanvasBot
 { 
@@ -121,6 +122,23 @@ namespace CanvasBot
             users.Add(user);
 
             return user;
+        }
+
+        public async Task<bool> IsSubmissionComplete(string courseId, string submissionId)
+        {
+            var response =
+                await client.GetAsync(
+                    $"https://canvas.instructure.com/api/v1/courses/{courseId}/assignments/{submissionId}/submissions/self");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+            JObject jsonData = JObject.Parse(result);
+            if (string.IsNullOrEmpty(jsonData["submitted_at"].ToString()))
+            {
+                //Debug.WriteLine(jsonData["submitted_at"]);
+                return false;
+            }
+
+            return true;
         }
 
     }

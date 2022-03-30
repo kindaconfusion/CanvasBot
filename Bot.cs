@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using CanvasBot.Classes;
@@ -105,6 +106,7 @@ namespace CanvasBot
 
                 foreach (CanvasAssignment a in ass)
                 {
+                    // fix this plz
                     DateTime dueDate;
                     if (a.Lock_At is null && a.Due_At is null)
                     {
@@ -131,11 +133,14 @@ namespace CanvasBot
             
             StringBuilder asses = new StringBuilder();
             List<CanvasAssignment> sortedAssignments = assignsDue.OrderBy(o => o.DueIn.TotalMilliseconds).ToList();
-            List<string> dedupe = new List<string>();
+            //List<string> dedupe = new List<string>();
             foreach (CanvasAssignment a in sortedAssignments)
             {
-                if (dedupe.Contains(a.Name))
+                if (a.Name is null || canvasHandler.IsSubmissionComplete(a.CourseId, a.Id).Result)
                     continue;
+                // not sure what happened here
+                //if (dedupe.Contains(a.Name))
+                //    continue;
                 asses.Append($"{a.Name} - due in ");
                 // time formatting sucks
                 if (a.DueIn.Days > 0)
@@ -162,7 +167,7 @@ namespace CanvasBot
                 if (a.DueIn.TotalSeconds < 60)
                     asses.Append(" less than a minute!");
                 asses.Append("\n");
-                dedupe.Add(a.Name);
+                //dedupe.Add(a.Name);
             }
 
             return asses.ToString();
