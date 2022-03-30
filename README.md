@@ -1,7 +1,7 @@
 # CanvasBot
 Check your upcoming Canvas assignments from Discord
 
-**Note:** Currently only tracks a single user, which is the owner of the bearer token. Unknown if it is possible to track other users' assignments.
+Can only, and will only ever, track a single user (the owner of the given auth token). The API does not allow student API users to access other users' data.
 
 ## Features
 #### !assignments [time]
